@@ -1,0 +1,291 @@
+
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0" />
+<title>Society Maintenance Agent — README</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,"Segoe UI",system-ui,sans-serif;font-size:14px;line-height:1.7;color:#1f2328;background:#fff;padding:32px 16px}
+  .container{max-width:760px;margin:0 auto}
+  h1{font-size:24px;font-weight:700;margin-bottom:6px}
+  h2{font-size:17px;font-weight:700;margin:32px 0 10px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;color:#1f2328}
+  h3{font-size:14px;font-weight:700;margin:18px 0 6px;color:#3b82d4}
+  p{margin-bottom:10px}
+  ul,ol{padding-left:20px;margin-bottom:10px}
+  li{margin-bottom:3px}
+  code{font-family:"SFMono-Regular",Consolas,monospace;font-size:12px;background:#f7f8fa;border:1px solid #e5e7eb;border-radius:3px;padding:1px 5px}
+  pre{background:#f7f8fa;border:1px solid #e5e7eb;border-radius:6px;padding:14px 16px;overflow-x:auto;font-size:12px;line-height:1.7;margin-bottom:14px;font-family:"SFMono-Regular",Consolas,monospace}
+  table{width:100%;border-collapse:collapse;margin-bottom:14px;font-size:13px}
+  th{background:#f7f8fa;padding:8px 10px;text-align:left;border:1px solid #e5e7eb;font-weight:700;font-size:12px;color:#57606a}
+  td{padding:7px 10px;border:1px solid #e5e7eb;vertical-align:top}
+  tr:nth-child(even) td{background:#fafbfc}
+  .badge{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;margin:2px 2px 6px 0}
+  .b-blue{background:#dbeafe;color:#1d4ed8}
+  .b-green{background:#dcfce7;color:#166534}
+  .b-purple{background:#ede9fe;color:#6d28d9}
+  .b-amber{background:#fef3c7;color:#92400e}
+  .b-gray{background:#f3f4f6;color:#374151}
+  .arch-box{background:#f7f8fa;border:1px solid #e5e7eb;border-radius:6px;padding:14px 16px;margin-bottom:14px}
+  .result-bar{background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:16px 20px;text-align:center;margin:16px 0}
+  .result-bar .num{font-size:22px;font-weight:700;color:#15803d}
+  .result-bar .sub{font-size:13px;color:#166534;margin-top:4px}
+  .phase-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px}
+  .phase-card{background:#f7f8fa;border:1px solid #e5e7eb;border-radius:6px;padding:10px 12px;font-size:12px}
+  .phase-card .num{font-weight:700;font-size:13px;color:#3b82d4}
+  .phase-card .status{color:#22c55e;font-weight:700;font-size:11px;float:right}
+  .toc{background:#f7f8fa;border:1px solid #e5e7eb;border-radius:6px;padding:14px 20px;margin-bottom:24px}
+  .toc ul{column-count:2;column-gap:20px}
+  .toc li{font-size:13px;color:#3b82d4}
+  blockquote{border-left:3px solid #3b82d4;padding:8px 14px;background:#f0f6ff;border-radius:0 4px 4px 0;margin-bottom:10px;font-size:13px;color:#1e3a5f}
+  footer{margin-top:40px;padding-top:12px;border-top:1px solid #e5e7eb;text-align:center;font-size:12px;color:#57606a}
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>🏠 Society Maintenance AI Agent</h1>
+<p>An agentic AI system for housing society management — built with LangGraph, Groq LLM, FastAPI (MCP), and Streamlit.</p>
+
+<div style="margin:12px 0 20px">
+  <span class="badge b-blue">LangGraph 1.2.8</span>
+  <span class="badge b-green">LangChain 1.3.11</span>
+  <span class="badge b-purple">Groq llama-3.1-8b-instant</span>
+  <span class="badge b-amber">FastAPI + MCP</span>
+  <span class="badge b-blue">Streamlit 1.59.0</span>
+  <span class="badge b-green">Pandas</span>
+  <span class="badge b-gray">Python 3.11</span>
+</div>
+
+<div class="toc">
+  <strong style="font-size:12px;color:#57606a;text-transform:uppercase;letter-spacing:.05em">Table of Contents</strong>
+  <ul style="margin-top:8px">
+    <li>Overview</li><li>Features</li><li>Architecture</li><li>Tech Stack</li>
+    <li>Project Structure</li><li>Data</li><li>Setup &amp; Installation</li>
+    <li>Running the App</li><li>How It Works</li><li>Available Tools</li>
+    <li>Example Queries</li><li>Test Results</li><li>Known Limitations</li>
+  </ul>
+</div>
+
+<h2>Overview</h2>
+<p>The Society Maintenance AI Agent is a conversational assistant that lets housing society committee members:</p>
+<ul>
+  <li>Chat naturally to query maintenance payment records and expenses</li>
+  <li>Get pending maintenance lists by month or year</li>
+  <li>View balance sheets with income vs expense breakdowns</li>
+  <li>Download styled Excel reports on demand</li>
+  <li>Look up payment history for any individual flat</li>
+</ul>
+<p>Data is sourced from two Excel files covering <strong>January 2024 – December 2025</strong> across <strong>88 occupied flats</strong>.</p>
+
+<h2>Features</h2>
+<table>
+  <thead><tr><th>Feature</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td>💬 Natural language chat</td><td>Ask questions in plain English — the agent understands context and memory</td></tr>
+    <tr><td>📊 Pending maintenance</td><td>See which flats haven't paid for any month or year</td></tr>
+    <tr><td>💰 Balance sheet</td><td>Income vs expenses with category-wise breakdown</td></tr>
+    <tr><td>📥 Excel downloads</td><td>Styled, printable reports for pending list and balance sheet</td></tr>
+    <tr><td>🧠 Conversation memory</td><td>Multi-turn chat — follow-up questions work without repeating context</td></tr>
+    <tr><td>⚡ Quick prompts</td><td>One-click preset questions in the sidebar</td></tr>
+    <tr><td>🔄 New conversation</td><td>Reset chat and start fresh anytime</td></tr>
+  </tbody>
+</table>
+
+<h2>Architecture</h2>
+<pre>User (Browser)
+     │
+     ▼
+┌─────────────────────────────────┐
+│         Streamlit UI            │  ← Chat input, sidebar filters,
+│         ui/app.py               │    download buttons
+└────────────┬────────────────────┘
+             │  calls
+             ▼
+┌─────────────────────────────────┐
+│      LangGraph Agent            │  ← Stateful ReAct loop
+│      agent/graph.py             │    START → llm_node ⇄ tool_node → END
+│                                 │
+│  ┌──────────┐  ┌─────────────┐  │
+│  │ llm_node │  │  tool_node  │  │
+│  │  Groq    │  │  (executes  │  │
+│  │  LLM     │  │   tools)    │  │
+│  └──────────┘  └─────────────┘  │
+│         MemorySaver (memory)    │
+└────────────┬────────────────────┘
+             │  calls
+             ▼
+┌─────────────────────────────────┐
+│    FastAPI + MCP Tool Server    │  ← 6 MCP tools + 8 REST endpoints
+│    server/main.py               │    Swagger UI at /docs
+└────────────┬────────────────────┘
+             │  reads
+             ▼
+┌─────────────────────────────────┐
+│       Data Layer                │  ← Pandas reads Excel files
+│       server/data_loader.py     │    Normalises, filters, aggregates
+└────────────┬────────────────────┘
+             │
+             ▼
+┌─────────────────────────────────┐
+│  data/Maintenance.xlsx          │  ← 2,848 rows, 88 flats, 24 months
+│  data/Expenses.xlsx             │  ← 977 rows, 10 expense categories
+└─────────────────────────────────┘</pre>
+
+<h2>Tech Stack</h2>
+<table>
+  <thead><tr><th>Layer</th><th>Technology</th><th>Version</th><th>Purpose</th></tr></thead>
+  <tbody>
+    <tr><td>UI</td><td>Streamlit</td><td>1.59.0</td><td>Chat interface with download buttons</td></tr>
+    <tr><td>Agent</td><td>LangGraph</td><td>1.2.8</td><td>Stateful ReAct agent with memory</td></tr>
+    <tr><td>LLM Framework</td><td>LangChain</td><td>1.3.11</td><td>Tool binding, message handling</td></tr>
+    <tr><td>LLM</td><td>Groq (llama-3.1-8b-instant)</td><td>—</td><td>Fast free-tier inference</td></tr>
+    <tr><td>Tool Server</td><td>FastAPI + MCP</td><td>0.111.0 / 1.27.0</td><td>REST API + MCP protocol</td></tr>
+    <tr><td>Data</td><td>Pandas</td><td>2.1.4</td><td>Excel read, filter, aggregate</td></tr>
+    <tr><td>Reports</td><td>openpyxl</td><td>3.1.5</td><td>Styled Excel report generation</td></tr>
+    <tr><td>Runtime</td><td>Python</td><td>3.11</td><td>—</td></tr>
+  </tbody>
+</table>
+
+<h2>Project Structure</h2>
+<pre>society-agent/
+│
+├── data/                          # Source Excel files (never modified by code)
+│   ├── Maintenance.xlsx           # 2,848 rows — flat payment records
+│   └── Expenses.xlsx              # 977 rows — society expense records
+│
+├── server/                        # Backend data + API layer
+│   ├── data_loader.py             # Pandas data helpers (read-only)
+│   └── main.py                    # FastAPI app + MCP tool definitions
+│
+├── agent/                         # AI agent layer
+│   ├── prompts.py                 # System prompt with formatting rules
+│   ├── tools.py                   # LangChain @tool wrappers
+│   └── graph.py                   # LangGraph StateGraph + stream_chat
+│
+├── reports/
+│   └── generator.py               # Styled pending + balance sheet reports
+│
+├── ui/
+│   └── app.py                     # Streamlit chat UI
+│
+├── test_data_loader.py            # Phase 1 tests
+├── test_server.py                 # Phase 2 tests
+├── test_agent.py                  # Phase 3 tests
+├── test_e2e.py                    # Phase 6 full integration tests
+├── test_notebook.ipynb            # Interactive Jupyter testing notebook
+├── .env                           # GROQ_API_KEY (never commit this)
+└── requirements.txt</pre>
+
+<h2>Data</h2>
+<h3>Maintenance.xlsx</h3>
+<table>
+  <thead><tr><th>Column</th><th>Type</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td>Maintenance Month</td><td>string</td><td>e.g. Jan_2024</td></tr>
+    <tr><td>Date</td><td>date</td><td>Payment date</td></tr>
+    <tr><td>Flat Number</td><td>int</td><td>e.g. 101, 205, 601</td></tr>
+    <tr><td>Name</td><td>string</td><td>Resident name (NA = vacant)</td></tr>
+    <tr><td>Amount</td><td>float</td><td>Maintenance paid (Rs. 1,000 standard)</td></tr>
+    <tr><td>Late Charges</td><td>float</td><td>Late payment charges if any</td></tr>
+  </tbody>
+</table>
+<h3>Expenses.xlsx</h3>
+<table>
+  <thead><tr><th>Column</th><th>Type</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td>Month</td><td>string</td><td>e.g. Jan_2024</td></tr>
+    <tr><td>Date</td><td>date</td><td>Expense date</td></tr>
+    <tr><td>Expence Type</td><td>string</td><td>Cleaning, Electricity, Water Bill, etc.</td></tr>
+    <tr><td>Details</td><td>string</td><td>Expense description</td></tr>
+    <tr><td>Amount</td><td>float</td><td>Amount spent</td></tr>
+    <tr><td>Spend By</td><td>string</td><td>Who spent</td></tr>
+  </tbody>
+</table>
+<blockquote><strong>Key Facts:</strong> 88 occupied flats · 11 vacant · 24 months (Jan 2024 – Dec 2025) · Rs. 1,000/flat/month standard</blockquote>
+
+<h2>Setup &amp; Installation</h2>
+<pre># 1. Navigate to project
+cd society-agent
+
+# 2. Create virtual environment (uv recommended)
+uv venv --python 3.11
+.venv\Scripts\activate
+uv pip install -r requirements.txt
+
+# 3. Set Groq API key in .env
+GROQ_API_KEY=gsk_your_actual_key_here
+
+# 4. Verify
+python test_e2e.py</pre>
+
+<h2>Running the App</h2>
+<pre>streamlit run ui/app.py
+# Opens at http://localhost:8501
+
+# Optional: FastAPI Swagger UI
+uvicorn server.main:app --reload --port 8000
+# Opens at http://localhost:8000/docs</pre>
+
+<h2>Available Tools</h2>
+<table>
+  <thead><tr><th>Tool</th><th>Parameters</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td><code>get_all_months</code></td><td>—</td><td>List all 24 available months</td></tr>
+    <tr><td><code>get_pending_maintenance</code></td><td>month or year</td><td>Flats that have NOT paid</td></tr>
+    <tr><td><code>get_collected_maintenance</code></td><td>month or year</td><td>Flats that HAVE paid</td></tr>
+    <tr><td><code>get_balance_sheet</code></td><td>month or year</td><td>Income vs expenses summary</td></tr>
+    <tr><td><code>get_expense_summary</code></td><td>month or year</td><td>Expenses grouped by category</td></tr>
+    <tr><td><code>get_flat_history</code></td><td>flat_number</td><td>Full payment history for one flat</td></tr>
+    <tr><td><code>download_pending_report</code></td><td>month or year</td><td>Generate pending Excel file</td></tr>
+    <tr><td><code>download_balance_report</code></td><td>month or year</td><td>Generate balance sheet Excel file</td></tr>
+  </tbody>
+</table>
+
+<h2>Example Queries</h2>
+<table>
+  <thead><tr><th>User Query</th><th>Tool Called</th><th>Sample Response</th></tr></thead>
+  <tbody>
+    <tr><td>"What months do we have?"</td><td>get_all_months</td><td>Lists all 24 months grouped by year</td></tr>
+    <tr><td>"Who hasn't paid for March 2025?"</td><td>get_pending_maintenance</td><td>9 flats listed with names</td></tr>
+    <tr><td>"Balance sheet for January 2024"</td><td>get_balance_sheet</td><td>Rs. 76,000 collected · Rs. 56,626 spent · Rs. 19,374 net</td></tr>
+    <tr><td>"Total electricity in 2024?"</td><td>get_expense_summary</td><td>Rs. 32,963</td></tr>
+    <tr><td>"Show history for flat 601"</td><td>get_flat_history</td><td>24 months, Rs. 23,000 total paid</td></tr>
+    <tr><td>"What about the whole year?"</td><td>get_balance_sheet</td><td>Uses memory — no need to repeat year</td></tr>
+  </tbody>
+</table>
+
+<h2>Test Results</h2>
+<div class="result-bar">
+  <div class="num">34 / 34 Tests Passed  —  100%</div>
+  <div class="sub">Data Layer (14) · Tools Layer (8) · Report Generation (4) · Agent Layer (8)</div>
+</div>
+
+<h2>Build Phases</h2>
+<div class="phase-grid">
+  <div class="phase-card"><div class="num">Phase 1</div><span class="status">✅</span><div>Data Layer</div></div>
+  <div class="phase-card"><div class="num">Phase 2</div><span class="status">✅</span><div>FastAPI + MCP</div></div>
+  <div class="phase-card"><div class="num">Phase 3</div><span class="status">✅</span><div>LangGraph Agent</div></div>
+  <div class="phase-card"><div class="num">Phase 4</div><span class="status">✅</span><div>Streamlit UI</div></div>
+  <div class="phase-card"><div class="num">Phase 5</div><span class="status">✅</span><div>Report Generation</div></div>
+  <div class="phase-card"><div class="num">Phase 6</div><span class="status">✅</span><div>E2E Testing</div></div>
+</div>
+
+<h2>Known Limitations</h2>
+<table>
+  <thead><tr><th>Issue</th><th>Detail</th><th>Impact</th></tr></thead>
+  <tbody>
+    <tr><td>Groq rate limits</td><td>Free tier: ~20,000 tokens/min. SDK auto-retries</td><td>Occasional slow responses</td></tr>
+    <tr><td>In-memory sessions</td><td>MemorySaver lost on server restart</td><td>Restart = new conversation</td></tr>
+    <tr><td>Excel file locked</td><td>Close Excel before running</td><td>PermissionError if open</td></tr>
+    <tr><td>Month name typos</td><td>Jun_2024 / july_2025 in raw data</td><td>Handled by _normalise_month()</td></tr>
+    <tr><td>No authentication</td><td>No login on Streamlit app</td><td>Add auth for production</td></tr>
+  </tbody>
+</table>
+
+<p style="margin-top:20px;font-size:12px;color:#57606a;font-style:italic">Built with LangGraph · LangChain · Groq · FastAPI · MCP · Streamlit · Pandas · openpyxl</p>
+
+<footer>Made with IBM Bob</footer>
+</div>
+</body>
+</html>

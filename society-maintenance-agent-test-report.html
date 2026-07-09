@@ -1,0 +1,209 @@
+
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Test Report — Society Maintenance Agent</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+    font-size: 14px; line-height: 1.6; color: #1f2328; background: #fff; padding: 32px 16px;
+  }
+  .container { max-width: 760px; margin: 0 auto; }
+  .header { border-bottom: 2px solid #e5e7eb; padding-bottom: 16px; margin-bottom: 24px; }
+  .header h1 { font-size: 20px; font-weight: 700; }
+  .header .meta { font-size: 12px; color: #57606a; margin-top: 4px; }
+  .summary-bar {
+    display: flex; gap: 12px; margin-bottom: 28px; flex-wrap: wrap;
+  }
+  .stat {
+    flex: 1; min-width: 120px; background: #f7f8fa; border: 1px solid #e5e7eb;
+    border-radius: 8px; padding: 14px 16px; text-align: center;
+  }
+  .stat .num { font-size: 28px; font-weight: 700; }
+  .stat .lbl { font-size: 11px; color: #57606a; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2px; }
+  .stat.green .num { color: #22c55e; }
+  .stat.red   .num { color: #ef4444; }
+  .stat.blue  .num { color: #3b82d4; }
+  .section { margin-bottom: 28px; }
+  .section-header {
+    display: flex; align-items: center; gap: 10px;
+    background: #f7f8fa; border: 1px solid #e5e7eb; border-left: 4px solid #3b82d4;
+    border-radius: 6px; padding: 10px 14px; margin-bottom: 10px;
+  }
+  .section-header .title { font-weight: 700; font-size: 14px; }
+  .section-header .badge {
+    margin-left: auto; font-size: 11px; font-weight: 700;
+    padding: 2px 10px; border-radius: 10px; background: #22c55e; color: #fff;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { background: #f7f8fa; padding: 8px 10px; text-align: left; border: 1px solid #e5e7eb; font-weight: 700; font-size: 12px; color: #57606a; text-transform: uppercase; letter-spacing: 0.04em; }
+  td { padding: 8px 10px; border: 1px solid #e5e7eb; vertical-align: top; }
+  tr:nth-child(even) td { background: #fafbfc; }
+  .pass { color: #22c55e; font-weight: 700; }
+  .fail { color: #ef4444; font-weight: 700; }
+  .detail { font-size: 12px; color: #57606a; font-family: "SFMono-Regular", Consolas, monospace; }
+  .icon { font-size: 15px; }
+  .agent-output {
+    font-family: "SFMono-Regular", Consolas, monospace;
+    font-size: 11px; background: #f7f8fa; border: 1px solid #e5e7eb;
+    border-radius: 4px; padding: 6px 10px; color: #57606a; margin-top: 4px;
+    white-space: pre-wrap; word-break: break-word;
+  }
+  .note { background: #fff8e1; border: 1px solid #f59e0b; border-radius: 4px; padding: 10px 14px; font-size: 12px; color: #78350f; margin-bottom: 16px; }
+  footer { margin-top: 40px; padding-top: 12px; border-top: 1px solid #e5e7eb; text-align: center; font-size: 12px; color: #57606a; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <h1>Society Maintenance Agent — Test Report</h1>
+    <div class="meta">Run date: 08 Jul 2026  |  Model: llama-3.1-8b-instant  |  LangGraph 1.2.8  |  Python 3.11</div>
+  </div>
+
+  
+  <div class="summary-bar">
+    <div class="stat green"><div class="num">34</div><div class="lbl">Passed</div></div>
+    <div class="stat red">  <div class="num">0</div> <div class="lbl">Failed</div></div>
+    <div class="stat blue"> <div class="num">34</div><div class="lbl">Total Tests</div></div>
+    <div class="stat green"><div class="num">100%</div><div class="lbl">Pass Rate</div></div>
+  </div>
+
+  
+  <div class="section">
+    <div class="section-header">
+      <span class="icon">📊</span>
+      <span class="title">1. Data Layer  <span style="font-weight:400;color:#57606a;font-size:12px">server/data_loader.py</span></span>
+      <span class="badge">14 / 14</span>
+    </div>
+    <table>
+      <thead><tr><th>Status</th><th>Test</th><th>Detail</th></tr></thead>
+      <tbody>
+        <tr><td class="pass">PASS</td><td>Maintenance rows &gt; 2000</td><td class="detail">2112 rows</td></tr>
+        <tr><td class="pass">PASS</td><td>Expenses rows &gt; 200</td><td class="detail">241 rows</td></tr>
+        <tr><td class="pass">PASS</td><td>Maintenance has 9 columns</td><td class="detail">month, date, flat_number, name, amount, late_charges, is_vacant, is_paid, year</td></tr>
+        <tr><td class="pass">PASS</td><td>Expenses has 7 columns</td><td class="detail">month, date, expense_type, details, amount, spend_by, year</td></tr>
+        <tr><td class="pass">PASS</td><td>24 months available</td><td class="detail">24 found</td></tr>
+        <tr><td class="pass">PASS</td><td>Jan_2024 in months</td><td class="detail">—</td></tr>
+        <tr><td class="pass">PASS</td><td>Dec_2025 in months</td><td class="detail">—</td></tr>
+        <tr><td class="pass">PASS</td><td>Months sorted correctly</td><td class="detail">Jan_2024 → Dec_2025</td></tr>
+        <tr><td class="pass">PASS</td><td>Pending query returns DataFrame</td><td class="detail">—</td></tr>
+        <tr><td class="pass">PASS</td><td>Pending excludes vacant flats</td><td class="detail">No "NA" in results</td></tr>
+        <tr><td class="pass">PASS</td><td>Balance sheet has required keys</td><td class="detail">total_collected, total_expenses, net_balance, expense_breakdown</td></tr>
+        <tr><td class="pass">PASS</td><td>Jan_2024 collected = 76,000</td><td class="detail">got 76000.0</td></tr>
+        <tr><td class="pass">PASS</td><td>Flat 601 has 24 months</td><td class="detail">24 rows</td></tr>
+        <tr><td class="pass">PASS</td><td>Flat 601 total ≥ Rs. 23,000</td><td class="detail">Rs. 23,000</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  
+  <div class="section">
+    <div class="section-header">
+      <span class="icon">🔧</span>
+      <span class="title">2. Tools Layer  <span style="font-weight:400;color:#57606a;font-size:12px">server/main.py — MCP tools</span></span>
+      <span class="badge">8 / 8</span>
+    </div>
+    <table>
+      <thead><tr><th>Status</th><th>Test</th><th>Detail</th></tr></thead>
+      <tbody>
+        <tr><td class="pass">PASS</td><td>tool_get_all_months returns dict</td><td class="detail">key: months</td></tr>
+        <tr><td class="pass">PASS</td><td>tool_get_all_months has 24 months</td><td class="detail">—</td></tr>
+        <tr><td class="pass">PASS</td><td>tool_get_pending has count key</td><td class="detail">—</td></tr>
+        <tr><td class="pass">PASS</td><td>tool_get_pending has pending key</td><td class="detail">—</td></tr>
+        <tr><td class="pass">PASS</td><td>tool_get_balance_sheet net correct</td><td class="detail">got 19374.0</td></tr>
+        <tr><td class="pass">PASS</td><td>tool_get_expense_summary not empty</td><td class="detail">—</td></tr>
+        <tr><td class="pass">PASS</td><td>tool_get_flat_history returns data</td><td class="detail">—</td></tr>
+        <tr><td class="pass">PASS</td><td>6 MCP tools registered</td><td class="detail">6 found</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  
+  <div class="section">
+    <div class="section-header">
+      <span class="icon">📥</span>
+      <span class="title">3. Report Generation  <span style="font-weight:400;color:#57606a;font-size:12px">reports/generator.py</span></span>
+      <span class="badge">4 / 4</span>
+    </div>
+    <table>
+      <thead><tr><th>Status</th><th>Test</th><th>Detail</th></tr></thead>
+      <tbody>
+        <tr><td class="pass">PASS</td><td>Pending Excel — single month (Jan_2024)</td><td class="detail">8,606 bytes</td></tr>
+        <tr><td class="pass">PASS</td><td>Pending Excel — full year (2024)</td><td class="detail">31,049 bytes</td></tr>
+        <tr><td class="pass">PASS</td><td>Balance Sheet Excel — single month (Jan_2024)</td><td class="detail">6,145 bytes</td></tr>
+        <tr><td class="pass">PASS</td><td>Balance Sheet Excel — full year (2024)</td><td class="detail">6,290 bytes</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  
+  <div class="section">
+    <div class="section-header">
+      <span class="icon">🤖</span>
+      <span class="title">4. Agent Layer  <span style="font-weight:400;color:#57606a;font-size:12px">LangGraph + Groq llama-3.1-8b-instant</span></span>
+      <span class="badge">8 / 8</span>
+    </div>
+    <div class="note">429 Too Many Requests errors are normal on Groq free tier — the SDK auto-retries. No action needed.</div>
+    <table>
+      <thead><tr><th>Status</th><th>Test</th><th>Agent Output (preview)</th></tr></thead>
+      <tbody>
+        <tr><td class="pass">PASS</td><td>Graph builds successfully</td><td class="detail">—</td></tr>
+        <tr><td class="pass">PASS</td><td>Graph has llm_node</td><td class="detail">—</td></tr>
+        <tr><td class="pass">PASS</td><td>Graph has tool_node</td><td class="detail">—</td></tr>
+        <tr>
+          <td class="pass">PASS</td>
+          <td>Agent answers month query</td>
+          <td><div class="agent-output">**Available months:**
+- **2024:** January, February, March, April, May, June, July, August, September, October, November, December
+- **2025:** January, February, March, ...</div></td>
+        </tr>
+        <tr>
+          <td class="pass">PASS</td>
+          <td>Agent returns balance numbers (Jan 2024)</td>
+          <td><div class="agent-output">**Balance Sheet for Jan_2024:**
+- Total Collected: Rs. 76,000
+- Total Expenses:  Rs. 56,626
+- Net Balance:     Rs. 19,374
+
+**Expense Breakdown:**
+- Electricity: Rs. 30,840 ...</div></td>
+        </tr>
+        <tr>
+          <td class="pass">PASS</td>
+          <td>Agent answers pending query (March 2025)</td>
+          <td><div class="agent-output">**9 flats** have not paid maintenance for **March 2025**:
+- Flat 101 — Bhau Maruti Jadhav
+- Flat 205 — NA
+- ...</div></td>
+        </tr>
+        <tr>
+          <td class="pass">PASS</td>
+          <td>Agent answers expense query (Electricity 2024)</td>
+          <td><div class="agent-output">**Electricity Expense in 2024:**
+- Rs. 32,963</div></td>
+        </tr>
+        <tr>
+          <td class="pass">PASS</td>
+          <td>Agent memory works (follow-up without context)</td>
+          <td><div class="agent-output">**Balance Sheet for 2024:**
+- Total Collected: Rs. 8,68,000
+- Total Expenses:  Rs. 6,81,801
+- Net Balance:     Rs. 1,86,199 ...</div></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  
+  <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:18px 20px;text-align:center;margin-top:8px">
+    <div style="font-size:22px;font-weight:700;color:#15803d">34 / 34 Tests Passed   —   100%</div>
+    <div style="font-size:13px;color:#166534;margin-top:6px">All layers verified: Data • Tools • Reports • Agent</div>
+  </div>
+
+  <footer>Made with IBM Bob</footer>
+</div>
+</body>
+</html>

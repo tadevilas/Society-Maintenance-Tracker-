@@ -1,0 +1,39 @@
+# ── Python ─────────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# ── Virtual environment ────────────────────────────────────────────────────────
+.venv/
+venv/
+env/
+
+# ── Environment secrets ────────────────────────────────────────────────────────
+.env
+
+# ── SQLite conversation memory (auto-created at runtime) ──────────────────────
+agent/memory.db
+
+# ── Data files (source Excel — never modified by code) ────────────────────────
+data/
+
+# ── Generated sample/report files ─────────────────────────────────────────────
+sample_*.xlsx
+reports/*.xlsx
+
+# ── Jupyter ────────────────────────────────────────────────────────────────────
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# ── IDE / OS ───────────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.DS_Store
+Thumbs.db
