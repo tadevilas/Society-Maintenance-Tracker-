@@ -37,3 +37,6 @@ reports/*.xlsx
 .idea/
 *.DS_Store
 Thumbs.db
+
+agent/memory.db-shm
+agent/memory.db-wal

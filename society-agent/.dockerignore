@@ -1,0 +1,57 @@
+# ── Python runtime artefacts ───────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# ── Virtual environment ────────────────────────────────────────────────────────
+.venv/
+venv/
+env/
+
+# ── Secrets – NEVER bake into the image ───────────────────────────────────────
+.env
+*.pem
+*.key
+
+# ── SQLite memory – created at runtime, not needed in image ───────────────────
+agent/memory.db
+agent/memory.db-shm
+agent/memory.db-wal
+
+# ── Data files – mounted as a volume at runtime ───────────────────────────────
+data/
+sample_*.xlsx
+reports/*.xlsx
+
+# ── Jupyter ────────────────────────────────────────────────────────────────────
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+test_notebook.ipynb
+
+# ── Test files (not needed in production image) ────────────────────────────────
+test_*.py
+
+# ── IDE / OS ───────────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.DS_Store
+Thumbs.db
+
+# ── Git ────────────────────────────────────────────────────────────────────────
+.git/
+.gitignore
+
+# ── Docker files themselves ────────────────────────────────────────────────────
+docker-compose*.yml
+Dockerfile*
+.dockerignore
+
+# ── CI ─────────────────────────────────────────────────────────────────────────
+.github/

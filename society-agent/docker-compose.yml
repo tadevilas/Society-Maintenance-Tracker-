@@ -1,0 +1,78 @@
+# docker-compose.yml
+# -------------------
+# Runs both the FastAPI/MCP server and the Streamlit UI from a single image.
+#
+# Usage:
+#   docker compose up --build          # build & start both services
+#   docker compose up api              # start FastAPI only
+#   docker compose up ui               # start Streamlit only
+#
+# Required env variable (set in a .env file or export in your shell):
+#   GROQ_API_KEY=gsk_...
+#
+# Data files:
+#   Mount the host society-agent/data/ directory (read-only) so Excel files
+#   are never baked into the image.
+
+services:
+
+  # ── FastAPI + MCP server ────────────────────────────────────────────────────
+  api:
+    image: society-agent:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: society-api
+    command: >
+      uvicorn server.main:app
+        --host 0.0.0.0
+        --port 8000
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data:ro          # source Excel files (read-only)
+    env_file:
+      - .env                         # provides GROQ_API_KEY
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c",
+             "import urllib.request; urllib.request.urlopen('http://localhost:8000/months')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  # ── Streamlit UI ─────────────────────────────────────────────────────────────
+  ui:
+    image: society-agent:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: society-ui
+    command: >
+      streamlit run ui/app.py
+        --server.port=8501
+        --server.address=0.0.0.0
+        --server.headless=true
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./data:/app/data:ro          # same Excel files
+      - agent-memory:/app/agent      # persist SQLite conversation memory
+    env_file:
+      - .env
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c",
+             "import urllib.request; urllib.request.urlopen('http://localhost:8501/_stcore/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+volumes:
+  agent-memory:
+    driver: local
