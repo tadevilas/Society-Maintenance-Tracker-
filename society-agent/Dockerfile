@@ -24,10 +24,13 @@ COPY --from=builder /install /usr/local
 # Copy application source (excludes anything in .dockerignore)
 COPY . .
 
-# Create a non-root user for security
-RUN addgroup --system appgroup && adduser --system --ingroup appgroup appuser \
-    && mkdir -p /app/agent /app/data /app/reports \
-    && chown -R appuser:appgroup /app
+# Create a non-root user WITH a real home directory.
+# --system users get home=/nonexistent by default which breaks Streamlit's
+# machine-ID file write. --home /home/appuser gives it a writable location.
+RUN addgroup --system appgroup \
+    && adduser --system --ingroup appgroup --home /home/appuser appuser \
+    && mkdir -p /home/appuser /app/agent /app/data /app/reports \
+    && chown -R appuser:appgroup /app /home/appuser
 
 USER appuser
 
