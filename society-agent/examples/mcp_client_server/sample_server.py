@@ -23,6 +23,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from mcp.server.fastmcp import FastMCP
+from reports.generator import generate_pending_excel, generate_balance_excel
 from server.data_loader import (
     get_all_months,
     get_pending_maintenance,
@@ -98,6 +99,48 @@ def tool_get_collected_maintenance(month: str = "", year: int = 0) -> dict:
     """Get flats that HAVE paid maintenance for a given month or year."""
     df = get_collected_maintenance(month=month or None, year=year or None)
     return {"period": month or str(year), "count": len(df), "collected": _df_to_records(df)}
+
+
+@mcp.tool()
+def tool_download_pending_report(month: str = "", year: int = 0) -> dict:
+    """
+    Generate and save a pending maintenance Excel report to the reports/ folder.
+    Pass month like 'Jan_2024' OR year like 2024.
+    Returns the saved file path and size so the caller knows where to find it.
+    """
+    file_bytes = generate_pending_excel(month=month or None, year=year or None)
+    period = month or str(year)
+    out_path = Path(__file__).parent.parent.parent / "downloads" / f"pending_maintenance_{period}.xlsx"
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    out_path.write_bytes(file_bytes)
+    return {
+        "status":    "saved",
+        "file_path": str(out_path),
+        "filename":  out_path.name,
+        "size_kb":   round(len(file_bytes) / 1024, 1),
+        "message":   f"Pending maintenance report for {period} saved to {out_path.name}",
+    }
+
+
+@mcp.tool()
+def tool_download_balance_report(month: str = "", year: int = 0) -> dict:
+    """
+    Generate and save a balance sheet Excel report to the reports/ folder.
+    Pass month like 'Jan_2024' OR year like 2024, or omit both for all-time.
+    Returns the saved file path and size so the caller knows where to find it.
+    """
+    file_bytes = generate_balance_excel(month=month or None, year=year or None)
+    period = month or str(year) if (month or year) else "all"
+    out_path = Path(__file__).parent.parent.parent / "downloads" / f"balance_sheet_{period}.xlsx"
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    out_path.write_bytes(file_bytes)
+    return {
+        "status":    "saved",
+        "file_path": str(out_path),
+        "filename":  out_path.name,
+        "size_kb":   round(len(file_bytes) / 1024, 1),
+        "message":   f"Balance sheet report for {period} saved to {out_path.name}",
+    }
 
 
 # ── Entry point ────────────────────────────────────────────────────────────────
