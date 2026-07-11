@@ -1,0 +1,220 @@
+
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Docker Files Explained</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, "Segoe UI", system-ui, sans-serif; font-size: 14px; line-height: 1.6; background: #ffffff; color: #1f2328; padding: 24px; }
+  .page { max-width: 760px; margin: 0 auto; }
+  h1 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+  h2 { font-size: 15px; font-weight: 700; margin: 28px 0 10px; border-bottom: 1px solid #e5e7eb; padding-bottom: 6px; }
+  h3 { font-size: 13px; font-weight: 700; margin: 16px 0 6px; color: #1f2328; }
+  p  { margin-bottom: 8px; color: #1f2328; }
+  .subtitle { color: #57606a; font-size: 13px; margin-bottom: 24px; }
+
+  /* Code */
+  code { font-family: "Consolas", "Courier New", monospace; font-size: 12.5px; background: #f7f8fa; border: 1px solid #e5e7eb; border-radius: 3px; padding: 1px 5px; }
+  pre  { background: #f7f8fa; border: 1px solid #e5e7eb; border-radius: 6px; padding: 14px 16px; overflow-x: auto; margin: 10px 0 14px; font-size: 12.5px; font-family: "Consolas", "Courier New", monospace; line-height: 1.7; }
+  pre .comment { color: #57606a; }
+  pre .key     { color: #3b82d4; font-weight: 600; }
+  pre .val     { color: #2a6e3f; }
+  pre .warn    { color: #b45309; font-weight: 600; }
+
+  /* Tables */
+  table { width: 100%; border-collapse: collapse; margin: 10px 0 14px; font-size: 13px; }
+  th { background: #f7f8fa; border: 1px solid #e5e7eb; padding: 7px 10px; text-align: left; font-weight: 600; color: #1f2328; }
+  td { border: 1px solid #e5e7eb; padding: 7px 10px; vertical-align: top; }
+  td code { background: none; border: none; padding: 0; }
+
+  /* Badges */
+  .badge { display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 10px; margin-right: 4px; }
+  .badge-blue   { background: #dbeafe; color: #1d4ed8; }
+  .badge-green  { background: #dcfce7; color: #166534; }
+  .badge-orange { background: #ffedd5; color: #9a3412; }
+  .badge-purple { background: #ede9fe; color: #5b21b6; }
+
+  /* Callout */
+  .callout { border-left: 3px solid #3b82d4; background: #f0f6ff; padding: 10px 14px; border-radius: 0 6px 6px 0; margin: 12px 0; font-size: 13px; }
+  .callout.warn { border-color: #f59e0b; background: #fffbeb; }
+  .callout.green { border-color: #22c55e; background: #f0fdf4; }
+
+  /* Architecture diagram */
+  .arch { background: #f7f8fa; border: 1px solid #e5e7eb; border-radius: 6px; padding: 16px; margin: 12px 0; font-family: "Consolas", "Courier New", monospace; font-size: 12px; line-height: 1.8; }
+  .arch .box   { color: #3b82d4; font-weight: 700; }
+  .arch .arrow { color: #57606a; }
+  .arch .label { color: #57606a; font-style: italic; }
+
+  /* Steps */
+  .step { display: flex; gap: 12px; margin-bottom: 10px; align-items: flex-start; }
+  .step-num { min-width: 24px; height: 24px; background: #3b82d4; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+  .step-body { flex: 1; }
+
+  footer { margin-top: 40px; padding-top: 12px; border-top: 1px solid #e5e7eb; text-align: center; font-size: 11px; color: #57606a; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>Docker Files Explained</h1>
+  <p class="subtitle">Society Maintenance Agent — Dockerfile &amp; docker-compose.yml walkthrough</p>
+
+  
+  <h2>Overall Architecture</h2>
+  <div class="arch">
+<span class="label">Your machine</span>
+┌──────────────────────────────────────────────────────┐
+│                                                      │
+│  <span class="box">society-agent/data/</span>  ←── your Excel files live here    │
+│       Maintenance.xlsx                               │
+│       Expenses.xlsx                                  │
+│            │                                         │
+│            │ mounted read-only into both containers  │
+│            ▼                                         │
+│  ┌─────────────────┐     ┌──────────────────────┐   │
+│  │  <span class="box">society-api</span>     │     │   <span class="box">society-ui</span>       │   │
+│  │  FastAPI :8000  │◄────│  Streamlit  :8501    │   │
+│  │  MCP server     │     │  (waits for api      │   │
+│  └─────────────────┘     │   to be healthy)     │   │
+│                           └──────────────────────┘   │
+│                                    │                 │
+│                           <span class="box">agent-memory</span> volume     │
+│                           (SQLite memory.db)         │
+└──────────────────────────────────────────────────────┘</div>
+
+  <p>Both containers run from the <strong>same Docker image</strong> (<code>society-agent:latest</code>) — just with different startup commands.</p>
+
+
+  
+  <h2>Dockerfile — Line by Line</h2>
+
+  <h3>Stage 1: Builder <span class="badge badge-blue">build-only</span></h3>
+  <pre><span class="comment"># Uses a temporary container just to install Python packages</span>
+FROM python:3.12-slim AS builder
+WORKDIR /app
+COPY requirements.txt .
+<span class="key">RUN pip install --prefix=/install -r requirements.txt</span>
+<span class="comment"># All packages land in /install — not in the final image yet</span></pre>
+  <p>This is a <strong>multi-stage build</strong>. pip runs here in isolation so the final image doesn't contain pip, build tools, or caches — keeping it small.</p>
+
+  <h3>Stage 2: Runtime <span class="badge badge-green">final image</span></h3>
+  <pre><span class="comment"># Fresh slim Python — no pip, no build junk</span>
+FROM python:3.12-slim
+WORKDIR /app
+
+<span class="comment"># Copy only the compiled packages from stage 1</span>
+<span class="key">COPY --from=builder /install /usr/local</span>
+
+<span class="comment"># Copy all source code (respects .dockerignore)</span>
+COPY . .
+
+<span class="comment"># Create non-root user for security</span>
+RUN addgroup --system appgroup &amp;&amp; adduser --system appuser ...
+USER appuser
+
+<span class="comment"># Expose both ports (only one is actually used per container)</span>
+EXPOSE 8000 8501
+
+<span class="comment"># Default CMD — overridden by docker-compose per service</span>
+CMD ["streamlit", "run", "ui/app.py", ...]</pre>
+
+  <div class="callout">
+    <strong>What .dockerignore excludes:</strong> The <code>.dockerignore</code> file prevents <code>.venv/</code>, <code>__pycache__/</code>, <code>*.db</code>, <code>.env</code>, and <code>data/</code> from being baked into the image. Data files are mounted at runtime instead.
+  </div>
+
+
+  
+  <h2>docker-compose.yml — Service by Service</h2>
+
+  <h3><span class="badge badge-blue">api</span> — FastAPI + MCP server</h3>
+  <table>
+    <tr><th>Setting</th><th>Value</th><th>What it means</th></tr>
+    <tr><td><code>command</code></td><td><code>uvicorn server.main:app --port 8000</code></td><td>Overrides the Dockerfile CMD — starts FastAPI, not Streamlit</td></tr>
+    <tr><td><code>ports</code></td><td><code>8000:8000</code></td><td>Host port 8000 → container port 8000. Reach it at <code>http://localhost:8000</code></td></tr>
+    <tr><td><code>volumes</code></td><td><code>./data:/app/data:ro</code></td><td>Mounts your local Excel files into the container as <strong>read-only</strong></td></tr>
+    <tr><td><code>env_file</code></td><td><code>.env</code></td><td>Injects <code>GROQ_API_KEY</code> from your local .env file</td></tr>
+    <tr><td><code>healthcheck</code></td><td>hits <code>/months</code> endpoint</td><td>Polls every 30s — ui won't start until this passes</td></tr>
+    <tr><td><code>restart</code></td><td><code>unless-stopped</code></td><td>Auto-restarts on crash; stops only if you manually stop it</td></tr>
+  </table>
+
+  <h3><span class="badge badge-green">ui</span> — Streamlit</h3>
+  <table>
+    <tr><th>Setting</th><th>Value</th><th>What it means</th></tr>
+    <tr><td><code>command</code></td><td><code>streamlit run ui/app.py --port 8501</code></td><td>Starts Streamlit UI</td></tr>
+    <tr><td><code>ports</code></td><td><code>8501:8501</code></td><td>Open browser at <code>http://localhost:8501</code></td></tr>
+    <tr><td><code>volumes[0]</code></td><td><code>./data:/app/data:ro</code></td><td>Same Excel files mounted here too (UI reads data directly)</td></tr>
+    <tr><td><code>volumes[1]</code></td><td><code>agent-memory:/app/agent</code></td><td>Named volume — persists <code>memory.db</code> (chat history) across restarts</td></tr>
+    <tr><td><code>depends_on</code></td><td><code>api: condition: service_healthy</code></td><td>Streamlit won't start until the API passes its healthcheck</td></tr>
+  </table>
+
+  <h3><span class="badge badge-purple">volumes</span> — agent-memory</h3>
+  <pre>volumes:
+  agent-memory:
+    driver: local</pre>
+  <p>Docker manages this volume. It stores <code>agent/memory.db</code> — the SQLite file that holds all conversation history. If you remove the container, the memory survives. If you remove the <em>volume</em>, memory is wiped.</p>
+
+
+  
+  <h2>How to Change the Data Files</h2>
+
+  <div class="callout green">
+    <strong>Key insight:</strong> The Excel files are <strong>never copied into the image</strong>. They are mounted from your local <code>society-agent/data/</code> folder at runtime via the volume <code>./data:/app/data:ro</code>. This means you can update data without rebuilding the image.
+  </div>
+
+  <h3>Option 1 — Replace files while containers are stopped (safest)</h3>
+  <div class="step"><div class="step-num">1</div><div class="step-body">Stop everything: <code>docker compose down</code></div></div>
+  <div class="step"><div class="step-num">2</div><div class="step-body">Replace <code>society-agent/data/Maintenance.xlsx</code> and/or <code>Expenses.xlsx</code> with your new files (keep the same filenames)</div></div>
+  <div class="step"><div class="step-num">3</div><div class="step-body">Start again: <code>docker compose up</code></div></div>
+
+  <h3>Option 2 — Hot-swap while running (no restart needed)</h3>
+  <div class="step"><div class="step-num">1</div><div class="step-body">Replace your local Excel files — the volume mount is live, so the container sees the new files immediately on the <strong>next request</strong>. No restart needed.</div></div>
+  <div class="step"><div class="step-num">2</div><div class="step-body">The <code>:ro</code> (read-only) flag only prevents the <em>container</em> from writing to <code>data/</code> — you can still write from your host machine normally.</div></div>
+
+  <div class="callout warn">
+    <strong>Rename caution:</strong> If you rename the files (e.g. <code>Maintenance_v2.xlsx</code>), <code>data_loader.py</code> won't find them. The loader hardcodes the filenames <code>Maintenance.xlsx</code> and <code>Expenses.xlsx</code>. Either keep the names, or update <code>server/data_loader.py</code> and rebuild the image.
+  </div>
+
+  <h3>Option 3 — Mount a different folder entirely</h3>
+  <p>If your data lives somewhere else on your machine, change the volume line in <code>docker-compose.yml</code>:</p>
+  <pre><span class="comment"># Before</span>
+volumes:
+  - ./data:/app/data:ro
+
+<span class="comment"># After — point to any folder on your machine</span>
+volumes:
+  - <span class="val">C:/MyData/SocietyFiles:/app/data:ro</span></pre>
+  <p>No rebuild needed — just <code>docker compose up</code> again.</p>
+
+
+  
+  <h2>Commands Cheatsheet</h2>
+  <table>
+    <tr><th>Goal</th><th>Command (run from <code>society-agent/</code>)</th></tr>
+    <tr><td>Build &amp; start everything</td><td><code>docker compose up --build</code></td></tr>
+    <tr><td>Start (already built)</td><td><code>docker compose up</code></td></tr>
+    <tr><td>Start only API</td><td><code>docker compose up api</code></td></tr>
+    <tr><td>Start only UI</td><td><code>docker compose up ui</code></td></tr>
+    <tr><td>Stop everything</td><td><code>docker compose down</code></td></tr>
+    <tr><td>Stop + wipe chat memory</td><td><code>docker compose down -v</code></td></tr>
+    <tr><td>See live logs</td><td><code>docker compose logs -f</code></td></tr>
+    <tr><td>Rebuild after code change</td><td><code>docker compose up --build</code></td></tr>
+    <tr><td>Shell into API container</td><td><code>docker exec -it society-api bash</code></td></tr>
+    <tr><td>Shell into UI container</td><td><code>docker exec -it society-ui bash</code></td></tr>
+  </table>
+
+
+  
+  <h2>When Do You Need to Rebuild the Image?</h2>
+  <table>
+    <tr><th>Change</th><th>Need rebuild?</th><th>Command</th></tr>
+    <tr><td>Replace Excel data files</td><td>❌ No</td><td>Just restart or hot-swap</td></tr>
+    <tr><td>Edit <code>.env</code> (API key)</td><td>❌ No</td><td><code>docker compose down &amp;&amp; docker compose up</code></td></tr>
+    <tr><td>Edit Python source code</td><td>✅ Yes</td><td><code>docker compose up --build</code></td></tr>
+    <tr><td>Add a Python package to <code>requirements.txt</code></td><td>✅ Yes</td><td><code>docker compose up --build</code></td></tr>
+    <tr><td>Change port numbers in compose</td><td>❌ No</td><td><code>docker compose down &amp;&amp; docker compose up</code></td></tr>
+  </table>
+
+  <footer>Made with IBM Bob</footer>
+</div>
+</body>
+</html>
