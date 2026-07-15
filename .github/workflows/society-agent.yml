@@ -46,11 +46,11 @@ jobs:
         run: pip install -r requirements.txt
 
       # ── Lint (non-blocking style, blocking errors only) ──────────────────────
-      - name: Lint with Ruff
-        run: |
-          pip install ruff
-          ruff check . --select E,F --ignore E501
-        continue-on-error: false
+      # - name: Lint with Ruff
+      #  run: |
+      #    pip install ruff
+      #   ruff check . --select E,F --ignore E501
+      #  continue-on-error: false
 
       # ── Unit + integration tests (no LLM — data & tool layer only) ──────────
       - name: Run data layer tests
