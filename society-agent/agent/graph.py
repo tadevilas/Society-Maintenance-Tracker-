@@ -28,8 +28,16 @@ from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 from langgraph.graph import StateGraph, START, END
 from langgraph.graph.message import add_messages
 from langgraph.prebuilt import ToolNode, tools_condition
-from langgraph.checkpoint.sqlite import SqliteSaver
+from langgraph.checkpoint.memory import MemorySaver
 from typing_extensions import TypedDict
+
+# Try to import SQLite checkpointer (requires langgraph-checkpoint-sqlite package).
+# Falls back to in-memory checkpointer if the package is not installed.
+try:
+    from langgraph.checkpoint.sqlite import SqliteSaver as _SqliteSaverCls
+    _SQLITE_AVAILABLE = True
+except ModuleNotFoundError:
+    _SQLITE_AVAILABLE = False
 
 from agent.prompts import SYSTEM_PROMPT
 from agent.tools import ALL_TOOLS
@@ -46,28 +54,34 @@ class AgentState(TypedDict):
     messages: Annotated[list, add_messages]
 
 
-# ── LLM setup — built once at import time ─────────────────────────────────────
+# ── LLM setup — lazy singleton ────────────────────────────────────────────────
 
-def _build_llm():
+_llm_with_tools = None
+
+
+def _get_llm():
     """
-    Instantiate the Groq LLM with tools bound.
-    Called once at module level; the result is reused for every graph step.
+    Return the LLM singleton, building it on first call.
+    Deferred to call-time (not import-time) so Docker env vars injected
+    by docker-compose env_file are present when the key is read.
     """
-    api_key = os.getenv("GROQ_API_KEY", "")
+    global _llm_with_tools
+    if _llm_with_tools is not None:
+        return _llm_with_tools
+
+    api_key = os.getenv("GROQ_API_KEY", "").strip().strip("'\"")
     if not api_key or api_key == "your_groq_api_key_here":
         raise ValueError(
             "GROQ_API_KEY is not set. "
             "Add it to society-agent/.env as: GROQ_API_KEY=gsk_..."
         )
     llm = ChatGroq(
-        model="openai/gpt-oss-120b",
+        model="llama-3.1-8b-instant",
         temperature=0,
         api_key=api_key,
     )
-    return llm.bind_tools(ALL_TOOLS)
-
-# Singleton — created once when this module is first imported.
-_llm_with_tools = _build_llm()
+    _llm_with_tools = llm.bind_tools(ALL_TOOLS)
+    return _llm_with_tools
 
 
 # ── Graph nodes ────────────────────────────────────────────────────────────────
@@ -78,25 +92,26 @@ def llm_node(state: AgentState) -> AgentState:
     Prepends the system prompt on every call so the LLM always has context.
     """
     messages = [SystemMessage(content=SYSTEM_PROMPT)] + state["messages"]
-    response = _llm_with_tools.invoke(messages)
+    response = _get_llm().invoke(messages)
     return {"messages": [response]}
 
 
-# ── SQLite checkpointer ────────────────────────────────────────────────────────
+# ── Checkpointer ───────────────────────────────────────────────────────────────
 
 # DB file lives next to this file: agent/memory.db
-# It is created automatically on first run.
+# It is created automatically on first run (SQLite path only).
 _DB_PATH = Path(__file__).parent / "memory.db"
 
 
-def _make_checkpointer() -> SqliteSaver:
+def _make_checkpointer():
     """
-    Open (or create) the SQLite database and return a SqliteSaver checkpointer.
-    Uses check_same_thread=False so the connection is safe to share across
-    Streamlit's threading model.
+    Return a SQLite checkpointer when langgraph-checkpoint-sqlite is installed,
+    otherwise fall back to an in-memory checkpointer (state lost on restart).
     """
-    conn = sqlite3.connect(str(_DB_PATH), check_same_thread=False)
-    return SqliteSaver(conn)
+    if _SQLITE_AVAILABLE:
+        conn = sqlite3.connect(str(_DB_PATH), check_same_thread=False)
+        return _SqliteSaverCls(conn)
+    return MemorySaver()
 
 
 # ── Build the graph ────────────────────────────────────────────────────────────

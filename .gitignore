@@ -41,3 +41,5 @@ Thumbs.db
 agent/memory.db-shm
 agent/memory.db-wal
 
+society-agent.yml
+.bob
